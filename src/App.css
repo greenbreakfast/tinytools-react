@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+}
+/* #root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+} */
+
+/* Character-level diff styles */
+.diff-insert {
+    background-color: #a8f0a8;
+}
+
+.diff-delete {
+    background-color: #f0a8a8;
+}
+
+/* Line-level background styles - now applied to the entire line */
+.line-insert-background {
+    background-color: rgba(168, 240, 168, 0.3); /* Fainter green */
+}
+
+.line-delete-background {
+    background-color: rgba(240, 168, 168, 0.3); /* Fainter red */
+}
