@@ -58,7 +58,7 @@ function TextDiff () {
             <TextEditorPair setText1={handleChangeText1} setText2={handleChangeText2} />
             <div className="flex justify-center my-6" ref={resultsRef}>
                 <button 
-                    className="w-1/4 px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700"
+                    className="w-3/4 md:w-1/4 px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700"
                     onClick={handleCompare}
                 >
                     Compare

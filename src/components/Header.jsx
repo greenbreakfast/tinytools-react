@@ -8,7 +8,7 @@ function Header() {
 
     return (
         <header className="w-full bg-[#0e7490] text-white p-4 shadow-md">
-            <div className="max-w-4xl mx-auto flex justify-between items-center">
+            <div className="container mx-auto px-4 md:px-8 lg:px-16 flex justify-between items-center">
                 <Link to="/" className="text-xl font-bold">🛠️ TinyTools 🛠️</Link>
                 <nav>
                     <ul className="flex space-x-6">

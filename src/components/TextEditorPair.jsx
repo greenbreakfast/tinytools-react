@@ -45,6 +45,7 @@ function TextEditorPair ({setText1, setText2}) {
         <>
             <div className="flex flex-col md:flex-row gap-4">
                 <div className="w-full md:w-1/2">
+                    <p className="text-md font-medium mb-2 text-left">Original text</p>
                     <CodeMirror 
                         key="editor-1" 
                         value=""
@@ -63,6 +64,7 @@ function TextEditorPair ({setText1, setText2}) {
                     />
                 </div>
                 <div className="w-full md:w-1/2">
+                    <p className="text-md font-medium mb-2 text-left">Changed text</p>
                     <CodeMirror 
                         key="editor-2" 
                         value=""
