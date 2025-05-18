@@ -8,8 +8,10 @@ import './App.css'
 
 import Header from './components/Header';
 import Footer from './components/Footer';
+
 import WordCounter from './pages/WordCounter';
 import TextDiff from './pages/TextDiff';
+import F1Schedule from './pages/F1Schedule';
 
 function App() {
   return (
@@ -21,6 +23,7 @@ function App() {
             <Route path="/" element={<TextDiff />} />
             <Route path="/text-diff" element={<TextDiff />} />
             <Route path="/word-counter" element={<WordCounter />} />
+            <Route path="/f1-schedule" element={<F1Schedule />} />
           </Routes>
         </main>
         <Footer />

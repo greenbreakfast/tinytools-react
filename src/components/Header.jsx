@@ -4,6 +4,7 @@ function Header() {
     const navLinks = [
         { to: '/text-diff', label: 'Text Diff' },
         { to: '/word-counter', label: 'Word Counter' },
+        { to: '/f1-schedule', label: 'F1 Schedule' },
     ];
 
     return (

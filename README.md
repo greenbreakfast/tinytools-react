@@ -19,7 +19,7 @@ npm install
 Preview:
 
 ```
-npm run preview
+npm run dev
 ```
 
 Build:
