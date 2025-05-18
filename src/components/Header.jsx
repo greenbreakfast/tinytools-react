@@ -9,8 +9,8 @@ function Header() {
 
     return (
         <header className="w-full bg-[#0e7490] text-white p-4 shadow-md">
-            <div className="container mx-auto px-4 md:px-8 lg:px-16 flex justify-between items-center">
-                <Link to="/" className="text-xl font-bold">🛠️ TinyTools 🛠️</Link>
+            <div className="container mx-auto px-4 md:px-8 lg:px-16 flex flex-col md:flex-row justify-center md:justify-between items-center">
+                <Link to="/" className="text-xl font-bold  mb-4 md:mb-0">🛠️ TinyTools 🛠️</Link>
                 <nav>
                     <ul className="flex space-x-6">
                         {navLinks.map((link) => (
