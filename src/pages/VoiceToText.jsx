@@ -1,37 +1,67 @@
-import { useState, useEffect } from 'react';
+import { useReducer, useEffect } from 'react';
 
 import OnOffStatusIndicator from '../components/OnOffStatusIndicator';
 import RecordButton from '../components/RecordButton';
 
 function VoiceToText() {
-    const [isRecording, setIsRecording] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [isError, setIsError] = useState(false);
-    const [transcript, setTranscript] = useState("Transcript will appear here...");
+    const stateReducer = (state, action) => {
+        switch (action.type) {
+            case 'SET_IS_RECORDING':
+                return { ...state, isRecording: true};
+            case 'SET_IS_NOT_RECORDING':
+                return { ...state, isRecording: false};
+            case 'SET_IS_PROCESSING':
+                return { ...state, isProcessing: true};
+            case 'SET_IS_NOT_PROCESSING':
+                return { ...state, isProcessing: false};
+            case 'RESET_ERROR':
+                return { ...state, error: null};
+            case 'SET_ERROR':
+                return { ...state, error: action.payload};
+            case 'SET_TRANSCRIPT':
+                return { ...state, transcript: action.payload};
+            default:
+                return state;
+        }
+    }
+    const [state, dispatch] = useReducer(stateReducer, {
+        isRecording: false,
+        isProcessing: false,
+        error: null,
+        transcript: "Transcript will appear here..."
+    })
 
     function handleRecordButtonClick() {
-        setIsRecording(!isRecording);
+        console.log(`setting isRecording to`, !state.isRecording ? {type: 'SET_IS_RECORDING'} : {type: 'SET_IS_NOT_RECORDING'})
+        dispatch(!state.isRecording ? {type: 'SET_IS_RECORDING'} : {type: 'SET_IS_NOT_RECORDING'});
+        console.log(state);
     };
 
     useEffect(() => {
         const getText = async () => {
-            setIsError(false);
-            setIsProcessing(true);
+            dispatch({type: 'RESET_ERROR'});
+            dispatch({type: 'SET_IS_PROCESSING'});
             try {
-                const response = await fetch('https://api.sampleapis.com/futurama/infos');
-            const data = await response.json();
-            setTranscript(data[0]?.synopsis);
+                const response = await fetch('https://api.sampleapis.com/futurama/info');
+                const data = await response.json();
+                dispatch({
+                    type: 'SET_TRANSCRIPT',
+                    payload: data[0]?.synopsis
+                })
             } catch (error) {
-                setIsError(true);
+                dispatch({
+                    type: 'SET_ERROR',
+                    payload: error
+                })
                 console.error('Error fetching data:', error);
             }
-            setIsProcessing(false);
-            console.log(transcript)
+            dispatch({type: 'SET_IS_NOT_PROCESSING'});
+            console.log(state.transcript)
         }
-        if (isRecording) {
+        if (state.isRecording) {
             getText();
         }
-    }, [isRecording]);
+    }, [state.isRecording]);
 
     return (
         <main className="container mx-auto p-4">
@@ -45,18 +75,18 @@ function VoiceToText() {
             <div className="flex flex-row mb-6 gap-4">
                 <div className="w-1/3">
                     <RecordButton
-                        isRecording={isRecording}
+                        isRecording={state.isRecording}
                         onClick={handleRecordButtonClick} />
                 </div>
                 <div className="w-2/3 bg-gray-800 rounded-lg p-4 flex flex-col gap-4">
                     <OnOffStatusIndicator     
                         statusName="Recording" 
-                        statusValue={isRecording}
+                        statusValue={state.isRecording}
                         activeColour="bg-red-500"
                     />
                     <OnOffStatusIndicator      
                         statusName="Processing" 
-                        statusValue={isProcessing}
+                        statusValue={state.isProcessing}
                         activeColour='bg-blue-500'
                     />
                 </div>
@@ -65,7 +95,7 @@ function VoiceToText() {
             <div className="bg-gray-800 rounded-lg p-6 min-h-64">
                 <h2 className="text-lg font-bold mb-4 text-white">Transcript</h2>
                 <div className="bg-white rounded border p-4 min-h-48 text-gray-700">
-                    <p className="italic">{transcript}</p>
+                    <p className="italic">{state.transcript}</p>
                 </div>
             </div>
             
