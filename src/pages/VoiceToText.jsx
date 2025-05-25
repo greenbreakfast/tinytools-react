@@ -1,9 +1,10 @@
-import { useReducer, useEffect } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
 
 import OnOffStatusIndicator from '../components/OnOffStatusIndicator';
 import RecordButton from '../components/RecordButton';
 
 function VoiceToText() {
+    const mediaRecorderRef = useRef(null)
     const stateReducer = (state, action) => {
         switch (action.type) {
             case 'SET_IS_RECORDING':
@@ -18,6 +19,8 @@ function VoiceToText() {
                 return { ...state, error: null};
             case 'SET_ERROR':
                 return { ...state, error: action.payload};
+            case 'SET_AUDIO_DATA':
+                return { ...state, audioData: action.payload};
             case 'SET_TRANSCRIPT':
                 return { ...state, transcript: action.payload};
             default:
@@ -28,19 +31,42 @@ function VoiceToText() {
         isRecording: false,
         isProcessing: false,
         error: null,
+        audioData: [],
         transcript: "Transcript will appear here..."
     })
 
     function handleRecordButtonClick() {
-        console.log(`setting isRecording to`, !state.isRecording ? {type: 'SET_IS_RECORDING'} : {type: 'SET_IS_NOT_RECORDING'})
-        dispatch(!state.isRecording ? {type: 'SET_IS_RECORDING'} : {type: 'SET_IS_NOT_RECORDING'});
-        console.log(state);
+        if (!state.isRecording) {
+            // TODO: handle case where waiting on permission and case where denied permission
+            if (navigator.mediaDevices) {
+                
+                navigator.mediaDevices.getUserMedia({audio: true})
+                .then(stream => {
+                    mediaRecorderRef.current = new MediaRecorder(stream);
+                    mediaRecorderRef.current.start();
+                    dispatch({type: 'SET_IS_RECORDING'});
+
+                    mediaRecorderRef.current.ondataavailable = async (event) => {
+                        console.log('data available');
+                        dispatch({type: 'SET_IS_PROCESSING'});
+                        dispatch({type: 'SET_AUDIO_DATA', payload: event.data});
+                    };
+                })
+                .catch(error => {
+                    console.error('Error accessing microphone:', error);
+                });
+            }
+        } else {
+            if (mediaRecorderRef.current) {
+                mediaRecorderRef.current.stop();
+                dispatch({type: 'SET_IS_NOT_RECORDING'});
+            }
+        }
     };
 
     useEffect(() => {
         const getText = async () => {
             dispatch({type: 'RESET_ERROR'});
-            dispatch({type: 'SET_IS_PROCESSING'});
             try {
                 const response = await fetch('https://api.sampleapis.com/futurama/info');
                 const data = await response.json();
@@ -58,10 +84,10 @@ function VoiceToText() {
             dispatch({type: 'SET_IS_NOT_PROCESSING'});
             console.log(state.transcript)
         }
-        if (state.isRecording) {
+        if (state.isProcessing) {
             getText();
         }
-    }, [state.isRecording]);
+    }, [state.isProcessing]);
 
     return (
         <main className="container mx-auto p-4">
