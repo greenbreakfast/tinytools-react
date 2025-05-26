@@ -22,7 +22,7 @@ function VoiceToText() {
             case 'SET_ERROR':
                 return { ...state, error: action.payload};
             case 'SET_AUDIO_DATA':
-                return { ...state, audioData: action.payload};
+                return { ...state, audioData: [ ...state.audioData, action.payload]};
             case 'SET_TRANSCRIPT':
                 return { ...state, transcript: action.payload};
             default:
@@ -37,58 +37,69 @@ function VoiceToText() {
         transcript: "Transcript will appear here..."
     })
 
+    const startRecording = async () => {
+        // TODO: handle case where waiting on permission and case where denied permission
+        try {
+            if (navigator.mediaDevices) {
+                const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+                mediaRecorderRef.current = new MediaRecorder(stream);
+
+                mediaRecorderRef.current.start();
+                dispatch({type: 'SET_IS_RECORDING'});
+
+                mediaRecorderRef.current.ondataavailable = async (event) => {
+                    console.log('data available');
+                    dispatch({type: 'SET_AUDIO_DATA', payload: event.data});
+                };
+            } else {
+                console.error('getUserMedia is not supported in this browser.');
+                // TODO: add user visible error message
+            }
+        } catch (error) {
+            console.error('Error accessing microphone:', error);
+            // TODO: add user visible error message
+        }
+    }
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current) {
+            mediaRecorderRef.current.stop();
+            dispatch({type: 'SET_IS_NOT_RECORDING'});
+        }
+    }
+
+    const handleRecordingData = async () => {
+        dispatch({type: 'RESET_ERROR'});
+        dispatch({type: 'SET_IS_PROCESSING'});
+        try {
+            // console.log(process.env.AAI_API_KEY)
+            const transcript = await aaiTranscribeApi(import.meta.env.VITE_AAI_API_KEY, state.audioData[state.audioData.length - 1]);
+            console.log('Transcript:', transcript);
+            dispatch({type: 'SET_TRANSCRIPT', payload: transcript});
+        } catch (error) {
+            dispatch({
+                type: 'SET_ERROR',
+                payload: error
+            })
+            console.error('Error running transcription:', error);
+        }
+        dispatch({type: 'SET_IS_NOT_PROCESSING'});
+    }
+
     function handleRecordButtonClick() {
         if (!state.isRecording) {
-            // TODO: handle case where waiting on permission and case where denied permission
-            if (navigator.mediaDevices) {
-                
-                navigator.mediaDevices.getUserMedia({audio: true})
-                .then(stream => {
-                    mediaRecorderRef.current = new MediaRecorder(stream);
-                    mediaRecorderRef.current.start();
-                    dispatch({type: 'SET_IS_RECORDING'});
-
-                    mediaRecorderRef.current.ondataavailable = async (event) => {
-                        console.log('data available');
-                        dispatch({type: 'SET_IS_PROCESSING'});
-                        dispatch({type: 'SET_AUDIO_DATA', payload: event.data});
-                    };
-                })
-                .catch(error => {
-                    console.error('Error accessing microphone:', error);
-                });
-            }
+            startRecording();
         } else {
-            if (mediaRecorderRef.current) {
-                mediaRecorderRef.current.stop();
-                dispatch({type: 'SET_IS_NOT_RECORDING'});
-            }
+            stopRecording();
         }
     };
 
     useEffect(() => {
-        const getText = async () => {
-            dispatch({type: 'RESET_ERROR'});
-            try {
-                // console.log(process.env.AAI_API_KEY)
-                console.log(import.meta.env.VITE_AAI_API_KEY);
-                const transcript = await aaiTranscribeApi(import.meta.env.VITE_AAI_API_KEY, state.audioData);
-                console.log('Transcript:', transcript);
-                dispatch({type: 'SET_TRANSCRIPT', payload: transcript});
-            } catch (error) {
-                dispatch({
-                    type: 'SET_ERROR',
-                    payload: error
-                })
-                console.error('Error running transcription:', error);
-            }
-            dispatch({type: 'SET_IS_NOT_PROCESSING'});
-            console.log(state.transcript)
+        console.log(`useEffect: state.audioData.length = ${state.audioData.length}`);
+        if (state.audioData && state.audioData.length > 0) {
+            handleRecordingData();
         }
-        if (state.isProcessing) {
-            getText();
-        }
-    }, [state.isProcessing]);
+    }, [state.audioData]);
 
     return (
         <main className="container mx-auto p-4">
