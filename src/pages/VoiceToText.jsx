@@ -3,6 +3,8 @@ import { useEffect, useReducer, useRef } from 'react';
 import OnOffStatusIndicator from '../components/OnOffStatusIndicator';
 import RecordButton from '../components/RecordButton';
 
+import aaiTranscribeApi from '../utils/aaiTranscribeApi';
+
 function VoiceToText() {
     const mediaRecorderRef = useRef(null)
     const stateReducer = (state, action) => {
@@ -68,18 +70,17 @@ function VoiceToText() {
         const getText = async () => {
             dispatch({type: 'RESET_ERROR'});
             try {
-                const response = await fetch('https://api.sampleapis.com/futurama/info');
-                const data = await response.json();
-                dispatch({
-                    type: 'SET_TRANSCRIPT',
-                    payload: data[0]?.synopsis
-                })
+                // console.log(process.env.AAI_API_KEY)
+                console.log(import.meta.env.VITE_AAI_API_KEY);
+                const transcript = await aaiTranscribeApi(import.meta.env.VITE_AAI_API_KEY, state.audioData);
+                console.log('Transcript:', transcript);
+                dispatch({type: 'SET_TRANSCRIPT', payload: transcript});
             } catch (error) {
                 dispatch({
                     type: 'SET_ERROR',
                     payload: error
                 })
-                console.error('Error fetching data:', error);
+                console.error('Error running transcription:', error);
             }
             dispatch({type: 'SET_IS_NOT_PROCESSING'});
             console.log(state.transcript)
